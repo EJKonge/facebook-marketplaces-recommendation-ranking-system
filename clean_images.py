@@ -19,7 +19,6 @@ def clean_image_data(filepath):
         new_im = resize_image(final_size, im)
         new_im.save(f'cleaned_images/{file_name}_cleaned.jpg')
 
-
 def resize_image(final_size, im: Image):
     size = im.size
     ratio = float(final_size) / max(size)
