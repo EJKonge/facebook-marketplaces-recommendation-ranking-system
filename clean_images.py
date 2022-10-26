@@ -4,12 +4,12 @@ import numpy as np
 import pandas as pd
 import os
 
-filepath = 'images'
+filepath = 'Image_folder/raw_images'
 
 def clean_image_data(filepath):
 
-    if os.path.exists('cleaned_images') == False:
-        os.mkdir('cleaned_images')
+    if os.path.exists('Image_folder/cleaned_images') == False:
+        os.mkdir('Image_folder/cleaned_images')
 
     dirs = os.listdir(filepath)
     final_size = 64
@@ -17,7 +17,7 @@ def clean_image_data(filepath):
         file_name = item.split('.')[0]
         im = Image.open(os.path.join(filepath, item))
         new_im = resize_image(final_size, im)
-        new_im.save(f'cleaned_images/{file_name}_cleaned.jpg')
+        new_im.save(f'Image_folder/cleaned_images/{file_name}_cleaned.jpg')
 
 def resize_image(final_size, im: Image):
     size = im.size
@@ -42,5 +42,5 @@ def Create_arrays():
     print(df_final)
     #df_final.to_pickle('products+arrays.pkl')
 
-#clean_image_data(filepath)
+clean_image_data(filepath)
 #Create_arrays()
