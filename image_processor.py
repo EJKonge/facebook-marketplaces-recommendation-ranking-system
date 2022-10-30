@@ -4,8 +4,8 @@ from torchvision import transforms
 class ImageProcessor:
     def __init__(self):
         self.transform = transforms.Compose([
-                transforms.Resize(64),
-                transforms.CenterCrop(64),
+                transforms.Resize(128),
+                transforms.CenterCrop(128),
                 transforms.RandomHorizontalFlip(p=0.3),
                 transforms.ToTensor(),
                 transforms.Normalize(mean=[0.485, 0.456, 0.406],
@@ -13,8 +13,8 @@ class ImageProcessor:
             ])
 
         self.transform_Gray = transforms.Compose([
-            transforms.Resize(64),
-            transforms.CenterCrop(64),
+            transforms.Resize(128),
+            transforms.CenterCrop(128),
             transforms.RandomHorizontalFlip(p=0.3),
             transforms.ToTensor(),
             transforms.Lambda(self.repeat_channel),
