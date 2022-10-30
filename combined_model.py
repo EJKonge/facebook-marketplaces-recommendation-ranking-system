@@ -210,9 +210,9 @@ def check_accuracy(loader, model):
 
 if __name__ == '__main__':
     train_model(model, 10)
-    model_save_name = 'combined_model.pt'
+    model_save_name = 'combined_model_test.pt'
     path = f"final_models/{model_save_name}" 
     torch.save(model.state_dict(), path)
-    with open('combined_model.pkl', 'wb') as f:
+    with open('combined_model_test.pkl', 'wb') as f:
         pickle.dump(dataset.decoder, f)
     check_accuracy(dataloader, model)
