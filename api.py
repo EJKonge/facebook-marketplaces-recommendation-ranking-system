@@ -1,23 +1,13 @@
-from email.policy import strict
-import fastapi
 from fastapi import FastAPI, File
-from fastapi import Request
 from fastapi import UploadFile
 from fastapi import Form
-from grpc import StatusCode
 import uvicorn
 import torch
 import torch.nn as nn 
-import torch.optim as optim
-import torch.nn.functional as F
 from torchvision import models
-import torchvision.transforms as transforms
 from PIL import Image
 from image_processor import ImageProcessor
 from text_processor import TextProcessor
-from combined_model import TextClassifier
-# , ImageTextClassifier
-
 from fastapi import FastAPI
 from fastapi import Request
 from fastapi import UploadFile
@@ -37,7 +27,29 @@ image_processor = ImageProcessor()
 text_processor = TextProcessor()
 
 
-
+class TextClassifier(torch.nn.Module):
+    def __init__(self,
+                 input_size: int = 768,
+                 num_classes: int = 13,
+                 decoder: dict = None):
+        super().__init__()
+        self.main = nn.Sequential(nn.Conv1d(input_size, 256, kernel_size=3, stride=1, padding=1),
+                                    nn.ReLU(),
+                                    nn.MaxPool1d(kernel_size=2, stride=2),
+                                    nn.Conv1d(256, 128, kernel_size=3, stride=1, padding=1),
+                                    nn.ReLU(),
+                                    nn.MaxPool1d(kernel_size=2, stride=2),
+                                    nn.Conv1d(128, 64, kernel_size=3, stride=1, padding=1),
+                                    nn.ReLU(),
+                                    nn.MaxPool1d(kernel_size=2, stride=2),
+                                    nn.Conv1d(64, 32, kernel_size=3, stride=1, padding=1),
+                                    nn.ReLU(),
+                                    nn.Flatten(),
+                                    nn.Linear(384, 128)).to(device)
+        self.decoder = decoder
+    def forward(self, inp):
+        x = self.main(inp)
+        return x
 
 # device = torch.device('cuda') if torch.cuda.is_available() else torch.device('cpu')
 device = 'cpu'
@@ -133,7 +145,7 @@ def test_post(image : UploadFile = File(...), text: str = Form(...)):
 # vocab_len = text_processor.get_vocab_length()
 
 
-class TextClassifier(torch.nn.Module):
+class TextClassifierSingle(nn.Module):
     def __init__(self,
                  input_size: int = 768,
                  num_classes: int = 13,
@@ -182,7 +194,7 @@ with open('text_decoder.pkl', 'rb') as f:
 
 n_classes = len(text_decoder)
 print(n_classes)
-text_model = TextClassifier(decoder=text_decoder)
+text_model = TextClassifierSingle(decoder=text_decoder)
 #  num_classes= n_classes)
 # , vocab_length=vocab_len)
 text_model.load_state_dict(torch.load('final_models/text_model.pt', map_location='cpu'), strict=False)
@@ -192,7 +204,7 @@ text_model.load_state_dict(torch.load('final_models/text_model.pt', map_location
 @app.post('/testtext')
 def test_post(text: str = Form(...)):
     processed_text = text_processor(text)
-    text_model = TextClassifier(decoder=combined_decoder)
+    text_model = TextClassifierSingle(decoder=combined_decoder)
     text_model.load_state_dict(torch.load('final_models/text_model.pt', map_location='cpu'))
     prediction = text_model.predict(processed_text)
     pred_prob = text_model.predict_prob(processed_text)
@@ -207,13 +219,13 @@ def test_post(text: str = Form(...)):
 
 
 
-class ImageClassifier(nn.Module):
+class ImageClassifierSingle(nn.Module):
     def __init__(self, decoder: dict = None):
         """
         We're taking the pretrained ResNet50 model, freezing the first 47 layers, and then adding a few
         more layers to the end of the model
         """
-        super(ImageClassifier, self).__init__()
+        super(ImageClassifierSingle, self).__init__()
         self.features = models.resnet50(pretrained=True).to(device)
         self.decoder = decoder
         for i, param in enumerate(self.features.parameters()):
@@ -268,7 +280,7 @@ with open('image_decoder.pkl', 'rb') as f:
 
 n_classes = len(text_decoder)
 print(n_classes)
-image_model = ImageClassifier(decoder=image_decoder)
+image_model = ImageClassifierSingle(decoder=image_decoder)
 #  num_classes= n_classes)
 # , vocab_length=vocab_len)
 image_model.load_state_dict(torch.load('final_models/image_model.pt', map_location='cpu'), strict=False)

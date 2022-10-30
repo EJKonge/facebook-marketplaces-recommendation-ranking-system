@@ -2,3 +2,4 @@ Image_folder
 runs
 final_models
 final_models/image_model.pt
+__pycache__
