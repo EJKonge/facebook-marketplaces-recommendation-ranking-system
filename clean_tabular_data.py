@@ -1,4 +1,3 @@
-from unicodedata import category
 import pandas as pd
 
 def Products_cleaner():
