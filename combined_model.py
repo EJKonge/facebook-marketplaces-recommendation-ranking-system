@@ -86,7 +86,7 @@ device = get_default_device()
 
 
 
-class TextClassifier(torch.nn.Module):
+class TextClassifier(nn.Module):
     def __init__(self,
                  input_size: int = 768,
                  num_classes: int = 13,
